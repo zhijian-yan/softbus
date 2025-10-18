@@ -8,12 +8,22 @@ extern "C" {
 #endif
 
 // 使用前需要将下面的宏函数补充完整
-#define swi2c_write_pin(pin, level)
-#define swi2c_read_pin(pin)
-#define swi2c_delay(us)
+#define swi2c_delay()
+#define swi2c_write_bit(pin, bit_value)
+#define swi2c_read_bit(pin)
+
+#define SWI2C_ACK 0
+#define SWI2C_NACK 1
+
+#define swi2c_write_scl(scl, bit_value)                                        \
+    do {                                                                       \
+        swi2c_delay();                                                         \
+        swi2c_write_bit(scl, bit_value);                                       \
+    } while(0)
+#define swi2c_write_sda(sda, bit_value) swi2c_write_bit(sda, bit_value)
+#define swi2c_read_sda(sda) swi2c_read_bit(sda)
 
 typedef struct {
-    uint32_t delay_us;
     uint32_t scl;
     uint32_t sda;
 } swi2c_t;
@@ -24,7 +34,7 @@ typedef enum {
 } swi2c_dir_t;
 
 // 上层封装函数
-void swi2c_init(swi2c_t *swi2c, uint32_t scl, uint32_t sda, uint32_t delay_us);
+void swi2c_init(swi2c_t *swi2c, uint32_t scl, uint32_t sda);
 uint32_t swi2c_write_cmd(swi2c_t *swi2c, uint8_t addr, uint8_t reg,
                          uint8_t cmd);
 uint32_t swi2c_write_data(swi2c_t *swi2c, uint8_t addr, uint8_t cmd,
@@ -35,36 +45,33 @@ uint32_t swi2c_read_data(swi2c_t *swi2c, uint8_t addr, uint8_t cmd,
 // 底层时序函数和宏
 #define swi2c_start(swi2c)                                                     \
     do {                                                                       \
-        swi2c_write_pin((swi2c)->sda, 1);                                      \
-        swi2c_write_pin((swi2c)->scl, 1);                                      \
-        swi2c_delay((swi2c)->delay_us);                                        \
-        swi2c_write_pin((swi2c)->sda, 0);                                      \
-        swi2c_write_pin((swi2c)->scl, 0);                                      \
-    } while (0)
+        swi2c_write_sda((swi2c)->sda, 1);                                      \
+        swi2c_write_scl((swi2c)->scl, 1);                                      \
+        swi2c_write_sda((swi2c)->sda, 0);                                      \
+        swi2c_write_scl((swi2c)->scl, 0);                                      \
+    } while(0)
 
 #define swi2c_stop(swi2c)                                                      \
     do {                                                                       \
-        swi2c_write_pin((swi2c)->sda, 0);                                      \
-        swi2c_write_pin((swi2c)->scl, 1);                                      \
-        swi2c_write_pin((swi2c)->sda, 1);                                      \
-    } while (0)
+        swi2c_write_sda((swi2c)->sda, 0);                                      \
+        swi2c_write_scl((swi2c)->scl, 1);                                      \
+        swi2c_write_sda((swi2c)->sda, 1);                                      \
+    } while(0)
 
 #define swi2c_send_ack(swi2c, ack)                                             \
     do {                                                                       \
-        swi2c_write_pin((swi2c)->sda, (ack));                                  \
-        swi2c_write_pin((swi2c)->scl, 1);                                      \
-        swi2c_delay((swi2c)->delay_us);                                        \
-        swi2c_write_pin((swi2c)->scl, 0);                                      \
-    } while (0)
+        swi2c_write_sda((swi2c)->sda, (ack));                                  \
+        swi2c_write_scl((swi2c)->scl, 1);                                      \
+        swi2c_write_scl((swi2c)->scl, 0);                                      \
+    } while(0)
 
 #define swi2c_receive_ack(swi2c, ack)                                          \
     do {                                                                       \
-        swi2c_write_pin((swi2c)->sda, 1);                                      \
-        swi2c_write_pin((swi2c)->scl, 1);                                      \
-        swi2c_delay((swi2c)->delay_us);                                        \
-        ack = swi2c_read_pin((swi2c)->sda);                                    \
-        swi2c_write_pin((swi2c)->scl, 0);                                      \
-    } while (0)
+        swi2c_write_sda((swi2c)->sda, 1);                                      \
+        swi2c_write_scl((swi2c)->scl, 1);                                      \
+        (ack) = swi2c_read_sda((swi2c)->sda);                                  \
+        swi2c_write_scl((swi2c)->scl, 0);                                      \
+    } while(0)
 
 uint32_t swi2c_send_7bit_addr(swi2c_t *swi2c, uint8_t addr, swi2c_dir_t dir);
 uint32_t swi2c_send_data(swi2c_t *swi2c, uint8_t *data, uint32_t size);
