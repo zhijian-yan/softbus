@@ -1,18 +1,19 @@
 #ifndef __SWSPI_H
 #define __SWSPI_H
 
-#include <stdint.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-// 使用前需要将下面的宏函数补充完整
-#define SWSPI_USE_MISO 0
-#define swspi_delay()
-#define swspi_write_bit(pin, bit_value)
+#include "softbus_config.h"
+#include <stdint.h>
+
+#if SWBUS_USE_SWSPI
+
+#define swspi_delay() swbus_delay()
+#define swspi_write_bit(pin, bit_value) swbus_write_bit(pin, bit_value)
 #if SWSPI_USE_MISO
-#define swspi_read_bit(pin)
+#define swspi_read_bit(pin) swbus_read_bit(pin)
 #else
 #define swspi_read_bit(pin) (0)
 #endif
@@ -34,6 +35,8 @@ void swspi_swap_data(swspi_t *swspi, uint8_t *send_data, uint8_t *recv_data,
                      uint32_t size);
 void swspi_send_data(swspi_t *swspi, uint8_t *data, uint32_t size);
 void swspi_receive_data(swspi_t *swspi, uint8_t *data, uint32_t size);
+
+#endif
 
 #ifdef __cplusplus
 }
