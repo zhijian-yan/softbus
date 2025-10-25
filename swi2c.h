@@ -8,9 +8,9 @@ extern "C" {
 #endif
 
 // 使用前需要将下面的宏函数补充完整
-#define swi2c_delay()
+#define swi2c_delay() 
 #define swi2c_write_bit(pin, bit_value)
-#define swi2c_read_bit(pin)
+#define swi2c_read_bit(pin) (0)
 
 #define SWI2C_ACK 0
 #define SWI2C_NACK 1
